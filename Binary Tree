@@ -1,0 +1,169 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct Book {
+    string title;
+    string author;
+    string genre;
+    int year;
+    int pages;
+};
+
+struct TreeNode {
+    Book data;
+    TreeNode* left;
+    TreeNode* right;
+
+    TreeNode(const Book& b) : data(b), left(nullptr), right(nullptr) {}
+};
+
+class BookTree {
+private:
+    TreeNode* root;
+
+    string underscore_to_space(const string& str) {
+        string result = str;
+        for (int i = 0; i < result.size(); i++) {
+            if (result[i] == '_') result[i] = ' ';
+        }
+        return result;
+    }
+
+    string space_to_underscore(const string& str) {
+        string result = str;
+        for (int i = 0; i < result.size(); i++) {
+            if (result[i] == ' ') result[i] = '_';
+        }
+        return result;
+    }
+
+    void insert(TreeNode*& node, const Book& b) {
+        if (!node) node = new TreeNode(b);
+        else if (b.title < node->data.title) insert(node->left, b);
+        else insert(node->right, b);
+    }
+
+    void save_preorder(TreeNode* node) {
+        if (!node) return;
+        cout << space_to_underscore(node->data.title) << " "
+            << space_to_underscore(node->data.author) << " "
+            << space_to_underscore(node->data.genre) << " "
+            << node->data.year << " " << node->data.pages << endl;
+        save_preorder(node->left);
+        save_preorder(node->right);
+    }
+
+    void search(TreeNode* node, const string& title) const {
+        if (!node) {
+            cout << "Book not found.\n";
+            return;
+        }
+        if (title == node->data.title) {
+            cout << "Found: " << node->data.title << ", " << node->data.author
+                << ", " << node->data.genre << ", " << node->data.year
+                << ", pages: " << node->data.pages << endl;
+        }
+        else if (title < node->data.title) search(node->left, title);
+        else search(node->right, title);
+    }
+
+    void clear(TreeNode* node) {
+        if (!node) return;
+        clear(node->left);
+        clear(node->right);
+        delete node;
+    }
+
+public:
+    BookTree() : root(nullptr) {}
+    ~BookTree() { clear(root); }
+
+    void insert(const Book& b) {
+        insert(root, b);
+    }
+
+    void search(const string& title) const {
+        search(root, title);
+    }
+
+    void load_from_console() {
+        int count;
+        cout << "How many books to load? ";
+        cin >> count;
+        cin.ignore();
+
+        for (int i = 0; i < count; ++i) {
+            Book b;
+            string title, author, genre;
+            cout << "\nEnter book " << (i + 1) << " (use underscores instead of spaces):\n";
+            cout << "Title: "; cin >> title;
+            cout << "Author: "; cin >> author;
+            cout << "Genre: "; cin >> genre;
+            cout << "Year: "; cin >> b.year;
+            cout << "Pages: "; cin >> b.pages;
+            cin.ignore();
+            b.title = underscore_to_space(title);
+            b.author = underscore_to_space(author);
+            b.genre = underscore_to_space(genre);
+            insert(b);
+        }
+    }
+
+    void save_to_console() {
+        cout << "\nSaved books (preorder):\n";
+        save_preorder(root);
+    }
+};
+
+int main() {
+    BookTree tree;
+    int choice;
+
+    while (true) {
+        cout << "\nBook Catalog Menu:\n";
+        cout << "1. Load from input\n2. Save to console\n3. Add a book\n4. Search by title\n5. Exit\n";
+        cout << "Choose an option: ";
+        cin >> choice;
+        cin.ignore();
+
+        if (choice == 1) {
+            tree.load_from_console();
+        }
+        else if (choice == 2) {
+            tree.save_to_console();
+        }
+        else if (choice == 3) {
+            Book b;
+            cout << "Enter title: "; getline(cin, b.title);
+            cout << "Enter author: "; getline(cin, b.author);
+            cout << "Enter genre: "; getline(cin, b.genre);
+            cout << "Enter year: "; cin >> b.year;
+            cout << "Enter page count: "; cin >> b.pages;
+            cin.ignore();
+            tree.insert(b);
+        }
+        else if (choice == 4) {
+            string title;
+            cout << "Enter title to search: ";
+            getline(cin, title);
+            tree.search(title);
+        }
+        else if (choice == 5) {
+            break;
+        }
+        else {
+            cout << "Invalid choice.\n";
+        }
+    }
+    return 0;
+}
+//Books.txt file:
+It_Ends_With_Us Colleen_Hoover Romance 2016 384
+Fourth_Wing Rebecca_Yarros Fantasy 2023 512
+Iron_Flame Rebecca_Yarros Fantasy 2023 640
+Verity Colleen_Hoover Thriller 2018 314
+November_9 Colleen_Hoover Romance 2015 320
+Accidentally_Amy Lynn_Painter Romance 2022 320
+A_Court_of_Thorns_and_Roses Sarah_J._Maas Fantasy 2015 419
+Better_Than_the_Movies Lynn_Painter Romance 2021 384
